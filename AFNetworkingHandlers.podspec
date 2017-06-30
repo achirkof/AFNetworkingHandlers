@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name           = 'AFNetworkingHandlers'
-  s.version        = '1.0.1'
+  s.version        = '1.0.2'
   s.summary        = "AFNetworking request handling."
   s.homepage       = "https://github.com/Khmelevsky/AFNetworkingHandlers"
   s.author         = { 'Alexandr Khmelevsky' => 'khmelevsky.alex@gmail.com' }

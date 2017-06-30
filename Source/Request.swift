@@ -22,6 +22,7 @@ open class Request {
         let manager = configurator.manager
         
         guard handlers.filter({ !$0.requestShouldStart(builder: self.builder) }).count == 0 else {
+            handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
             return
         }
         
