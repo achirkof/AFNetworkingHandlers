@@ -74,6 +74,7 @@ open class Request {
         case .multipartFormData(let data): task = manager.post(configurator.urlString, parameters: configurator.params, constructingBodyWith: data, progress: progress, success: success, failure: failure)
         }
         
+        self.builder.task = task
         handlers.forEach({ $0.requestStarted(builder:self.builder, task: task) })
     }
 }
