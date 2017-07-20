@@ -15,6 +15,7 @@ open class RequestBuilder {
     
     // MARK: - Vars
     private(set) open var configurator: Configurator
+    open weak var task:URLSessionTask?
     
     // MARK: - Init
     public init(manager:AFHTTPSessionManager, configurator: Configurator) {
