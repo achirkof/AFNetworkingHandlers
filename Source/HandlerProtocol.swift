@@ -23,6 +23,7 @@ public protocol HandlerProtocol: class {
     
     func prepareConfigurator(builder:RequestBuilder, configurator:Configurator) -> Error?
     func prepareSuccess(builder:RequestBuilder, URLSessionDataTask:URLSessionDataTask, result:Any?) -> Error?
+    func prepareFailure(builder:RequestBuilder, URLSessionDataTask:URLSessionDataTask?, error:Error) -> Error
     
 }
 
@@ -41,5 +42,6 @@ public extension HandlerProtocol {
     
     func prepareConfigurator(builder:RequestBuilder, configurator:Configurator) -> Error? { return nil }
     func prepareSuccess(builder:RequestBuilder, URLSessionDataTask:Foundation.URLSessionDataTask, result:Any?) -> Error? { return nil }
+    func prepareFailure(builder:RequestBuilder, URLSessionDataTask:URLSessionDataTask?, error:Error) -> Error { return error }
     
 }

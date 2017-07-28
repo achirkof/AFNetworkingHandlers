@@ -58,7 +58,11 @@ open class Request {
         }
         
         let failure: (URLSessionDataTask?, Error) -> Swift.Void = { (urlSessionDataTask, error) in
-            handlers.forEach({ $0.failure(builder:self.builder, URLSessionDataTask: urlSessionDataTask, error: error) })
+            var preparedError = error
+            for handler in handlers {
+                preparedError = handler.prepareFailure(builder:self.builder, URLSessionDataTask:urlSessionDataTask, error:preparedError)
+            }
+            handlers.forEach({ $0.failure(builder:self.builder, URLSessionDataTask: urlSessionDataTask, error: preparedError) })
             handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
         }
         
