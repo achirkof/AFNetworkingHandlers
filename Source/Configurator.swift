@@ -32,7 +32,6 @@ public protocol Configurator: class {
     var method: Method { get set }
     var params: Any? { get set }
     var handlers: [HandlerProtocol] { get set }
-    var manager: AFHTTPSessionManager { get set }
     
 }
 
@@ -44,11 +43,9 @@ open class AFHTTPDefaultConfigurator: Configurator {
     open var method: Method = .get
     open var params: Any? = nil
     open var handlers = [HandlerProtocol]()
-    open var manager: AFHTTPSessionManager
     
-    public init(urlString: String, manager:AFHTTPSessionManager) {
+    public init(urlString: String) {
         self.urlString = urlString
-        self.manager = manager
     }
 }
 

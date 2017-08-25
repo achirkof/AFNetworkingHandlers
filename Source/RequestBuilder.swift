@@ -15,17 +15,18 @@ open class RequestBuilder {
     
     // MARK: - Vars
     private(set) open var configurator: Configurator
+    let manager:AFHTTPSessionManager
     open weak var task:URLSessionTask?
     
     // MARK: - Init
     public init(manager:AFHTTPSessionManager, configurator: Configurator) {
-        configurator.manager = manager
+        self.manager = manager
         self.configurator = configurator
     }
     
     // MARK: - Logic
     open func execute() {
-        Request(builder: self).execute()
+        Request().execute(builder: self)
     }
     
 }

@@ -10,60 +10,64 @@ import Foundation
 import AFNetworking
 
 open class Request {
-    private let builder: RequestBuilder
     
-    public init(builder:RequestBuilder) {
+    private var builder: RequestBuilder?
+    
+    func execute(builder:RequestBuilder) {
         self.builder = builder
-    }
-    
-    func execute() {
         let configurator = builder.configurator
+        let manager = builder.manager
         let handlers = configurator.handlers
-        let manager = configurator.manager
         
-        guard handlers.filter({ !$0.requestShouldStart(builder: self.builder) }).count == 0 else {
-            handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
+        guard handlers.filter({ !$0.requestShouldStart(builder: builder) }).count == 0 else {
+            handlers.forEach({ $0.requestDidFinish(builder:builder) })
             return
         }
         
-        handlers.forEach({ $0.requestWillStart(builder:self.builder) })
+        handlers.forEach({ $0.requestWillStart(builder:builder) })
         
         for handler in handlers {
-            if let error = handler.prepareConfigurator(builder:self.builder, configurator: configurator) {
-                handlers.forEach({ $0.failure(builder:self.builder, URLSessionDataTask: nil, error: error) })
-                handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
+            if let error = handler.prepareConfigurator(builder:builder, configurator: configurator) {
+                handlers.forEach({ $0.failure(builder:builder, URLSessionDataTask: nil, error: error) })
+                handlers.forEach({ $0.requestDidFinish(builder:builder) })
                 return
             }
         }
         
-        let progress: (Progress) -> Swift.Void = { progress in
-            handlers.forEach({ $0.progress(builder:self.builder, progress: progress) })
+        let progress: (Progress) -> Swift.Void = { [weak self] progress in
+            guard let builder = self?.builder else { return }
+            builder.configurator.handlers.forEach({ $0.progress(builder:builder, progress: progress) })
         }
         
-        let success: (URLSessionDataTask, Any?) -> Swift.Void = { (urlSessionDataTask, responseObject) in
-            for handler in handlers {
-                if let error = handler.prepareSuccess(builder:self.builder, URLSessionDataTask: urlSessionDataTask, result: responseObject) {
-                    handlers.forEach({ $0.failure(builder:self.builder, URLSessionDataTask: urlSessionDataTask, error: error) })
-                    handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
+        let headSuccess: (URLSessionDataTask) -> Swift.Void = { [weak self] urlSessionDataTask in
+            guard let builder = self?.builder else { return }
+            builder.configurator.handlers.forEach({ $0.success(builder:builder, URLSessionDataTask: urlSessionDataTask, result: nil) })
+            builder.configurator.handlers.forEach({ $0.requestDidFinish(builder:builder) })
+        }
+        
+        let success: (URLSessionDataTask, Any?) -> Swift.Void = { [weak self] (urlSessionDataTask, responseObject) in
+            guard let builder = self?.builder else { return }
+            for handler in builder.configurator.handlers {
+                if let error = handler.prepareSuccess(builder:builder, URLSessionDataTask: urlSessionDataTask, result: responseObject) {
+                    handlers.forEach({ $0.failure(builder:builder, URLSessionDataTask: urlSessionDataTask, error: error) })
+                    handlers.forEach({ $0.requestDidFinish(builder:builder) })
                     return
                 }
             }
-            handlers.forEach({ $0.success(builder:self.builder, URLSessionDataTask: urlSessionDataTask, result: responseObject) })
-            handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
+            builder.configurator.handlers.forEach({ $0.success(builder:builder, URLSessionDataTask: urlSessionDataTask, result: responseObject) })
+            builder.configurator.handlers.forEach({ $0.requestDidFinish(builder:builder) })
+            self?.cleanFromHeap()
         }
         
-        let headSuccess: (URLSessionDataTask) -> Swift.Void = { urlSessionDataTask in
-            handlers.forEach({ $0.success(builder:self.builder, URLSessionDataTask: urlSessionDataTask, result: nil) })
-            handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
-        }
-        
-        let failure: (URLSessionDataTask?, Error) -> Swift.Void = { (urlSessionDataTask, error) in
+        let failure: (URLSessionDataTask?, Error) -> Swift.Void = { [weak self] (urlSessionDataTask, error) in
+            guard let builder = self?.builder else { return }
             var preparedError = error
-            for handler in handlers {
-                preparedError = handler.prepareFailure(builder:self.builder, URLSessionDataTask:urlSessionDataTask, error:preparedError)
+            for handler in builder.configurator.handlers {
+                preparedError = handler.prepareFailure(builder:builder, URLSessionDataTask:urlSessionDataTask, error:preparedError)
             }
-            handlers.forEach({ $0.failure(builder:self.builder, URLSessionDataTask: urlSessionDataTask, error: preparedError) })
-            handlers.forEach({ $0.requestDidFinish(builder:self.builder) })
+            builder.configurator.handlers.forEach({ $0.failure(builder:builder, URLSessionDataTask: urlSessionDataTask, error: preparedError) })
+            builder.configurator.handlers.forEach({ $0.requestDidFinish(builder:builder) })
+            self?.cleanFromHeap()
         }
         
         var task: URLSessionDataTask?
@@ -78,7 +82,13 @@ open class Request {
         case .multipartFormData(let data): task = manager.post(configurator.urlString, parameters: configurator.params, constructingBodyWith: data, progress: progress, success: success, failure: failure)
         }
         
-        self.builder.task = task
-        handlers.forEach({ $0.requestStarted(builder:self.builder, task: task) })
+        self.builder?.task = task
+        handlers.forEach({ $0.requestStarted(builder:builder, task: task) })
+        Request.heap.append(self)
+    }
+    
+    private static var heap = [Request]()
+    private func cleanFromHeap() {
+        if let index = Request.heap.index(where: { $0 === self }) { Request.heap.remove(at: index) }
     }
 }

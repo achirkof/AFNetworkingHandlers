@@ -16,7 +16,7 @@ open class RequestManager: AFHTTPSessionManager {
     public var defaultMethod = Method.get
     
     open func builder(url: String, clouser: ((Configurator) -> Void)? = nil) -> RequestBuilder {
-        let configurator = AFHTTPDefaultConfigurator(urlString: url, manager:self)
+        let configurator = AFHTTPDefaultConfigurator(urlString: url)
         configurator.handlers = self.defaultHandlers
         configurator.params = self.defaultParams
         configurator.method = self.defaultMethod

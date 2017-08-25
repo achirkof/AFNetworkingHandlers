@@ -12,7 +12,7 @@ extension AFHTTPSessionManager {
     
     @available(*, deprecated, message: "Use RequestManager")
     public func builder(withUrlString url: String, clouser:(Configurator) -> Swift.Void) -> RequestBuilder {
-        let configurator = AFHTTPDefaultConfigurator(urlString: url, manager:self)
+        let configurator = AFHTTPDefaultConfigurator(urlString: url)
         clouser(configurator)
         return RequestBuilder(manager: self, configurator: configurator)
     }
