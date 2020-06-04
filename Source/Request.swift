@@ -72,14 +72,14 @@ open class Request {
         
         var task: URLSessionDataTask?
         switch configurator.method {
-        case .head:   task = manager.head(configurator.urlString, parameters: configurator.params, success: headSuccess, failure: failure)
-        case .get:    task = manager.get(configurator.urlString, parameters: configurator.params, progress: progress, success: success, failure: failure)
-        case .post:   task = manager.post(configurator.urlString, parameters: configurator.params, progress: progress, success: success, failure: failure)
-        case .put:    task = manager.put(configurator.urlString, parameters: configurator.params, success: success, failure: failure)
-        case .delete: task = manager.delete(configurator.urlString, parameters: configurator.params, success: success, failure: failure)
-        case .patch:  task = manager.patch(configurator.urlString, parameters: configurator.params, success: success, failure: failure)
-        case .postMultipartForm(let data): task = manager.post(configurator.urlString, parameters: configurator.params, constructingBodyWith: data, progress: progress, success: success, failure: failure)
-        case .multipartFormData(let data): task = manager.post(configurator.urlString, parameters: configurator.params, constructingBodyWith: data, progress: progress, success: success, failure: failure)
+            case .head:   task = manager.head(configurator.urlString, parameters: configurator.params, headers: [:], success: headSuccess, failure: failure)
+            case .get:    task = manager.get(configurator.urlString, parameters: configurator.params, headers: [:], progress: progress, success: success, failure: failure)
+            case .post:   task = manager.post(configurator.urlString, parameters: configurator.params, headers: [:], progress: progress, success: success, failure: failure)
+            case .put:    task = manager.put(configurator.urlString, parameters: configurator.params, headers: [:], success: success, failure: failure)
+            case .delete: task = manager.delete(configurator.urlString, parameters: configurator.params, headers: [:], success: success, failure: failure)
+            case .patch:  task = manager.patch(configurator.urlString, parameters: configurator.params, headers: [:], success: success, failure: failure)
+            case .postMultipartForm(let data): task = manager.post(configurator.urlString, parameters: configurator.params, headers: [:], constructingBodyWith: data, progress: progress, success: success, failure: failure)
+            case .multipartFormData(let data): task = manager.post(configurator.urlString, parameters: configurator.params, headers: [:], constructingBodyWith: data, progress: progress, success: success, failure: failure)
         }
         
         self.builder?.task = task
